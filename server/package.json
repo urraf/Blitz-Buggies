@@ -1,0 +1,18 @@
+{
+  "name": "@blitz/server",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.ts",
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js --external:ws"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/ws": "^8.5.13",
+    "esbuild": "^0.25.0"
+  }
+}

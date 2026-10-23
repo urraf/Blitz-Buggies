@@ -1,0 +1,11 @@
+# Render Blueprint: game server + web client in one free Docker web service.
+# Render > New > Blueprint > pick this repo. The game is then at https://<name>.onrender.com
+# Free services sleep after 15 idle minutes and take up to a minute to wake (the menu explains this).
+services:
+  - type: web
+    name: blitz-buggies
+    runtime: docker
+    plan: free
+    region: frankfurt # oregon | ohio | virginia | frankfurt | singapore: pick the one nearest your players
+    healthCheckPath: /health
+    autoDeploy: true
