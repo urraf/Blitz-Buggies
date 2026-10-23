@@ -6,8 +6,8 @@ services:
     name: blitz-buggies
     runtime: docker
     plan: free
-    # Nearest to your players (ping measured from India: singapore ~80 ms, frankfurt ~167 ms, US 240+ ms).
-    # Render can't move an existing service: delete it, then Manual Sync the Blueprint to recreate it here.
-    region: singapore # oregon | ohio | virginia | frankfurt | singapore
+    # Frankfurt: best single region for portal players (Europe 10-40 ms, US East ~90 ms; India ~167 ms).
+    # Render can't move an existing service: delete it and create it again to change region.
+    region: frankfurt # oregon | ohio | virginia | frankfurt | singapore
     healthCheckPath: /health
     autoDeploy: true
