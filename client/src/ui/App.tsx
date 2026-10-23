@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from "react";
 import { sfx } from "../audio/sfx.ts";
 import { client } from "../game/client.ts";
+import { portal } from "../game/portal.ts";
 import { useUi } from "../game/useStore.ts";
 import { ErrorBoundary } from "./ErrorBoundary.tsx";
 import { Hud, PauseMenu } from "./Hud.tsx";
@@ -30,6 +31,9 @@ export function App() {
 
   // background music follows the screen (starts on the first click: browsers block autoplay)
   useEffect(() => { sfx.music(screen === "game" ? "race" : "menu"); }, [screen]);
+
+  // the menu is interactive: tell the portal loading is done (its conversion-to-play metric)
+  useEffect(() => { portal.loadingFinished(); }, []);
 
   const inMatch = screen === "game" || screen === "results";
   return (

@@ -10,7 +10,7 @@ import { Customize } from "./Customize.tsx";
 
 const KartPreview = lazy(() => import("../scene/KartPreview.tsx"));
 
-type Dialog = null | "solo" | "create" | "join" | "settings" | "help" | "customize";
+type Dialog = null | "solo" | "create" | "join" | "settings" | "help" | "customize" | "privacy";
 
 
 const NEWS = [
@@ -146,7 +146,7 @@ export function Menu() {
       </aside>
 
       <footer className="home-bottom">
-        <span className="version">Blitz Buggies 2.0 · sounds by Kenney (CC0)</span>
+        <span className="version">Blitz Buggies 2.0 · sounds by Kenney (CC0) · <button className="link-btn" onClick={() => { sfx.unlock(); sfx.open(); setDialog("privacy"); }}>Privacy</button></span>
         <div className="spacer" />
         <button className="round-btn" aria-label="Settings" onClick={() => { sfx.unlock(); sfx.open(); setDialog("settings"); }}>⚙</button>
         <button className="round-btn" aria-label="How to play" onClick={() => { sfx.unlock(); sfx.open(); setDialog("help"); }}>?</button>
@@ -160,6 +160,11 @@ export function Menu() {
       {dialog === "settings" && <Modal title="Settings" onClose={() => setDialog(null)}><SettingsPanel /></Modal>}
       {dialog === "help" && <Modal title="How to Play" onClose={() => setDialog(null)} wide><Controls /></Modal>}
       {dialog === "customize" && <Customize onClose={() => setDialog(null)} />}
+      {dialog === "privacy" && (
+        <Modal title="Privacy" onClose={() => setDialog(null)} wide>
+          <iframe className="privacy-frame" src={`${import.meta.env.BASE_URL}privacy.html`} title="Privacy policy" />
+        </Modal>
+      )}
     </div>
   );
 }

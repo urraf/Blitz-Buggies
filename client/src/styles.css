@@ -309,6 +309,8 @@ kbd { font-family: var(--body); font-weight: 700; background: var(--ink-3); bord
 .home-bottom { grid-area: bottom; display: flex; align-items: center; gap: 8px; }
 .home-bottom .round-btn { width: 46px; height: 46px; font-size: 20px; }
 .version { font-size: 12px; font-weight: 700; color: #e3edff; }
+.link-btn { background: none; border: 0; padding: 0; color: #fff; font: inherit; text-decoration: underline; cursor: pointer; }
+.privacy-frame { display: block; width: 100%; height: min(62vh, 540px); border: 0; border-radius: 12px; background: #f4f7ff; }
 @media (max-width: 1050px) and (orientation: portrait) {
   .home { grid-template-columns: 1fr; grid-template-rows: auto auto auto auto auto; grid-template-areas: "top" "center" "right" "left" "bottom"; overflow: auto; }
   .home-center .logo { font-size: 48px; } .play-btn { font-size: 40px; padding: 8px 40px; }

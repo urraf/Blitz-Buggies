@@ -37,7 +37,9 @@ npm run typecheck    # strict tsc for shared, server and client
 
 ## Browser debugging hooks
 
-Open the devtools console while playing:
+The hooks exist in dev builds (`npm run dev`), or in any build when the URL ends with `?debug`.
+Production players don't get them, because portals reject shipped debug code. Open the devtools
+console while playing:
 
 | Hook | Use |
 |---|---|
@@ -110,9 +112,19 @@ running somewhere public over HTTPS. Solo vs bots works with no server at all.
   ```bash
   npm run package:portal -- https://<name>.onrender.com
   ```
-  This writes `release/blitz-buggies-web.zip` and leaves `client/dist` alone. The build:
+  This writes `release/blitz-buggies-web.zip` and leaves `client/dist` alone. Add `--poki` to get
+  `release/blitz-buggies-poki.zip` with the Poki SDK built in (see `client/src/game/portal.ts`):
+  - **Gameplay events:** `gameplayStart` fires on the first input of a match or after unpausing.
+    `gameplayStop` fires on pause, results and leaving.
+  - **Ads:** a `commercialBreak` is offered before Play, Solo, Create, Join and Rematch. While an ad
+    plays, audio is muted, input is off and solo games pause.
+  - **Ad blockers:** if the SDK is blocked, the game plays on without ads.
+
+  The build:
   - uses relative paths, so it works from a portal's sub-folder;
   - bundles its fonts and makes no third-party requests;
-  - fits small 16:9 frames (640×360 and up) by scaling the menus.
+  - fits small 16:9 frames (640×360 and up) by scaling the menus;
+  - includes the privacy policy (`client/public/privacy.html`). It opens from the home footer and is
+    also served at `/privacy.html` on the game server, for the portals' submission forms.
 - **Server address in code:** `VITE_SERVER_URL` sets the server at build time. When it isn't set,
   the client uses the page's own origin, which is how the Docker image and `npm start` work.

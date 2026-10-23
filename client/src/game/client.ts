@@ -7,6 +7,7 @@ import {
 import { sfx } from "../audio/sfx.ts";
 import { LocalTransport, readToken, WsTransport, type NetStatus, type Transport } from "../net/transport.ts";
 import { input } from "./input.ts";
+import { portal } from "./portal.ts";
 import { settings } from "./settings.ts";
 import { progress, type MatchStats, type Reward } from "./progress.ts";
 
@@ -171,20 +172,26 @@ export class GameClient {
   /** After a page reload, re-attach to the match we were in (the server keeps our kart for a grace period). */
   resume() { if (readToken() && readToken() !== "local") this.online(); }
 
-  quickPlay() { sfx.unlock(); this.ui.set({ error: null }); this.online().send({ t: "quick" }); }
-  createRoom(s: Partial<RoomSettings>) { sfx.unlock(); this.ui.set({ error: null }); this.online().send({ t: "create", settings: s }); }
-  joinRoom(code: string) { sfx.unlock(); this.ui.set({ error: null }); this.online().send({ t: "join", code }); }
+  /** Portal ad opportunity before heading into a match (a solo game pauses while an ad plays). */
+  private adBreak() { return portal.commercialBreak((p) => this.transport?.setPaused?.(p)); }
+
+  // the socket starts connecting (and waking a sleeping server) while any ad plays
+  quickPlay() { sfx.unlock(); this.ui.set({ error: null }); const t = this.online(); void this.adBreak().then(() => t.send({ t: "quick" })); }
+  createRoom(s: Partial<RoomSettings>) { sfx.unlock(); this.ui.set({ error: null }); const t = this.online(); void this.adBreak().then(() => t.send({ t: "create", settings: s })); }
+  joinRoom(code: string) { sfx.unlock(); this.ui.set({ error: null }); const t = this.online(); void this.adBreak().then(() => t.send({ t: "join", code })); }
 
   startSolo(s: Partial<RoomSettings>) {
     sfx.unlock();
-    this.transport?.close();
-    this.ui.set({ mode: "local", error: null });
-    this.transport = new LocalTransport(this.handlers, this.playerName(), settings.get().kart, s, settings.get().look);
+    void this.adBreak().then(() => {
+      this.transport?.close();
+      this.ui.set({ mode: "local", error: null });
+      this.transport = new LocalTransport(this.handlers, this.playerName(), settings.get().kart, s, settings.get().look);
+    });
   }
 
   startMatch() { this.transport?.send({ t: "start" }); }
   updateRoomSettings(s: Partial<RoomSettings>) { this.transport?.send({ t: "settings", settings: s }); }
-  rematch() { this.transport?.send({ t: "rematch" }); }
+  rematch() { void this.adBreak().then(() => this.transport?.send({ t: "rematch" })); }
   setKart(kart: string) { settings.update({ kart }); this.transport?.send({ t: "kart", kart, look: settings.get().look }); }
   setLook(look: string) { settings.update({ look }); this.transport?.send({ t: "kart", kart: settings.get().kart, look }); }
 
@@ -198,7 +205,7 @@ export class GameClient {
   setPaused(p: boolean) {
     this.ui.set({ paused: p });
     input.enabled = !p && this.ui.get().screen === "game";
-    if (p) input.clear();
+    if (p) { input.clear(); portal.gameplayStop(); }
     this.transport?.setPaused?.(p);
   }
 
@@ -223,6 +230,7 @@ export class GameClient {
   simulateDrop() { (this.transport as WsTransport | null)?.simulateDrop?.(); }
 
   private toMenu() {
+    portal.gameplayStop();
     this.ui.set({ screen: "menu", room: null, results: null, reward: null, paused: false, banner: null });
   }
 
@@ -271,6 +279,7 @@ export class GameClient {
         break;
       case "results": {
         input.enabled = false;
+        portal.gameplayStop();
         const rank = m.rows.findIndex((r) => r.id === this.ui.get().you) + 1;
         if (rank === 1) sfx.victory(); else sfx.defeat();
         const reward = progress.award(m.rows, this.ui.get().you, this.stats);
@@ -535,6 +544,7 @@ export class GameClient {
       this.tickCount++;
       this.estTick += 1;
       const bits = s.screen === "game" && !s.paused ? input.sample() : 0;
+      if (bits !== 0) portal.gameplayStart(); // portals count play from the first real input
       this.seq++;
       if (this.batch.length === 0) this.batchStart = this.seq;
       this.batch.push(bits);
@@ -764,4 +774,6 @@ export class GameClient {
 
 export const client = new GameClient();
 client.resume();
-(window as unknown as { __bb: GameClient }).__bb = client;
+// console debug hooks only in dev builds or with ?debug in the URL (portals reject shipped debug code)
+export const DEBUG = import.meta.env.DEV || new URLSearchParams(location.search).has("debug");
+if (DEBUG) (window as unknown as { __bb: GameClient }).__bb = client;

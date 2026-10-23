@@ -31,6 +31,7 @@ class Sfx {
   private wantTrack: "menu" | "race" | null = null;
   private step = 0;
   private nextNote = 0;
+  private adMuted = false;
   volume = 0.7;
   fxVolume = 0.9;
   engineVolume = 0.5;
@@ -63,8 +64,16 @@ class Sfx {
       this.applyVolumes();
       void this.load();
     }
-    if (this.ctx.state === "suspended") void this.ctx.resume();
+    if (this.ctx.state === "suspended" && !this.adMuted) void this.ctx.resume();
     if (this.wantTrack && this.musicTrack !== this.wantTrack) this.music(this.wantTrack);
+  }
+
+  /** Silence everything (music, engine, effects) while a portal ad plays. */
+  adMute(on: boolean) {
+    this.adMuted = on;
+    if (!this.ctx) return;
+    if (on) void this.ctx.suspend();
+    else void this.ctx.resume();
   }
 
   private async load() {

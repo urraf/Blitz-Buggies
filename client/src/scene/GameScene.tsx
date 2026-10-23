@@ -5,7 +5,7 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { KFlag, lerpAngle, segmentClear } from "../../../shared/src/index.ts";
 import { sfx } from "../audio/sfx.ts";
-import { client } from "../game/client.ts";
+import { client, DEBUG } from "../game/client.ts";
 import { useSettings, useUi } from "../game/useStore.ts";
 import { ArenaView } from "./Arena.tsx";
 import { Effects, Pickups, Projectiles } from "./Entities.tsx";
@@ -112,7 +112,7 @@ export default function GameScene() {
       gl={{ antialias: quality !== "low", powerPreference: "high-performance" }}
       camera={{ fov: BASE_FOV, near: 0.3, far: 1400, position: [0, 30, -60] }}
       onCreated={({ gl }) => {
-        (window as unknown as { __gl: THREE.WebGLRenderer }).__gl = gl; // perf inspection hook
+        if (DEBUG) (window as unknown as { __gl: THREE.WebGLRenderer }).__gl = gl; // perf inspection hook
       }}
     >
       <FrameDriver />
